@@ -16,7 +16,7 @@ import 'package:lifestyle_companion/activities_idea.dart';
 import 'package:lifestyle_companion/create_habit.dart';
 import 'package:lifestyle_companion/exercise.dart';
 import 'package:lifestyle_companion/item.dart';
-import 'package:lifestyle_companion/mistral_service.dart';
+
 import 'package:lifestyle_companion/ollama_service.dart';
 import 'package:lifestyle_companion/saved_habit.dart';
 import 'package:lifestyle_companion/select_pref.dart';
