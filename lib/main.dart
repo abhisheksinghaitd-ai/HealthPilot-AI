@@ -10,6 +10,7 @@ import 'package:lifestyle_companion/ui.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  
   await Hive.initFlutter();
   await Hive.openBox('login');
   await Hive.openBox('stepsBox');
@@ -23,6 +24,7 @@ void main() async {
   await Hive.openBox('day');
   await Hive.openBox('appData');
   await Hive.openBox('LiveSteps');
+  await Hive.openBox('achievements');
 
   runApp(const MyApp());
 }

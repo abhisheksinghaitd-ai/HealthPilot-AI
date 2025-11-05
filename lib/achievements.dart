@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
+import 'package:pedometer/pedometer.dart';
 
 void main() => runApp(const MyApp());
 
@@ -13,26 +16,88 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Achievements Demo',
       theme: ThemeData.dark(),
-      home: const AchievementsWidget(),
+      home:  AchievementsWidget(),
     );
   }
 }
 
-class AchievementsWidget extends StatelessWidget {
-  const AchievementsWidget({super.key});
 
-  // badge data (you can easily edit titles/unlocked here)
-  static const List<Map<String, dynamic>> _badges = [
-    {'steps': '3K', 'title': 'Away From Sofa', 'unlocked': true},
-    {'steps': '5K', 'title': 'Getting Stronger', 'unlocked': true},
-    {'steps': '7K', 'title': 'On the Move', 'unlocked': true},
-    {'steps': '10K', 'title': 'Step Master', 'unlocked': false},
-    {'steps': '15K', 'title': 'Road Runner', 'unlocked': false},
-    {'steps': '20K', 'title': 'Marathon Mindset', 'unlocked': false},
-    {'steps': '30K', 'title': 'Legend Walker', 'unlocked': false},
-    {'steps': '50K', 'title': 'Step King', 'unlocked': false},
-    {'steps': '100K', 'title': 'Ultimate Walker', 'unlocked': false},
-  ];
+
+class AchievementsWidget extends StatefulWidget {
+  AchievementsWidget({super.key});
+
+ 
+
+  @override
+  State<AchievementsWidget> createState() => _AchievementsWidgetState();
+}
+int rebootSteps = 0;
+
+class _AchievementsWidgetState extends State<AchievementsWidget> {
+  final achievementsBox = Hive.box('achievements');
+
+@override
+void initState() {
+  super.initState();
+
+  // Load saved unlocked achievements on app start
+  for (var badge in _badges) {
+    bool savedUnlocked = achievementsBox.get(badge['steps'].toString(), defaultValue: false);
+    badge['unlocked'] = savedUnlocked;
+  }
+
+  listenStepsSinceReboot((steps) {
+    setState(() {
+      rebootSteps = steps;
+
+      for (var badge in _badges) {
+        if (rebootSteps >= badge['steps']) {
+          badge['unlocked'] = true;
+
+          // ✅ Save in Hive so reboot won't clear it
+          achievementsBox.put(badge['steps'].toString(), true);
+        }
+      }
+    });
+  });
+}
+
+
+  StreamSubscription<StepCount>? _rebootStepSub;
+
+int _stepsSinceReboot = 0;
+
+/// 📌 Use this function to read steps since device reboot
+void listenStepsSinceReboot(Function(int steps) onStepsUpdated) {
+  _rebootStepSub?.cancel();
+
+  _rebootStepSub = Pedometer.stepCountStream.listen((StepCount event) {
+    _stepsSinceReboot = event.steps;
+    onStepsUpdated(_stepsSinceReboot);
+  }, onError: (error) {
+    print("Reboot Step Error: $error");
+  });
+}
+
+/// 📌 Getter to pull the latest value manually if needed
+int getStepsSinceReboot() {
+  return _stepsSinceReboot;
+}
+
+
+
+static final List<Map<String, dynamic>> _badges = [
+  {'steps': 3000,  'title': 'Away From Sofa',     'unlocked': false},
+  {'steps': 5000,  'title': 'Getting Stronger',   'unlocked': false},
+  {'steps': 7000,  'title': 'On the Move',        'unlocked': false},
+  {'steps': 10000, 'title': 'Step Master',        'unlocked': false},
+  {'steps': 15000, 'title': 'Road Runner',        'unlocked': false},
+  {'steps': 20000, 'title': 'Marathon Mindset',   'unlocked': false},
+  {'steps': 30000, 'title': 'Legend Walker',      'unlocked': false},
+  {'steps': 50000, 'title': 'Step King',          'unlocked': false},
+  {'steps': 100000,'title': 'Ultimate Walker',    'unlocked': false},
+];
+
 
   @override
   Widget build(BuildContext context) {
@@ -75,13 +140,17 @@ class AchievementsWidget extends StatelessWidget {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 18,
                 childAspectRatio: 0.58, // tweak to get look similar to your design
-                children: _badges
-                    .map((b) => StepsBadgeColumn(
-                          steps: b['steps'] as String,
-                          title: b['title'] as String,
-                          unlocked: b['unlocked'] as bool,
-                        ))
-                    .toList(),
+                 children: _badges.map((b) {
+  int steps = b['steps'] as int;
+  String displaySteps = steps >= 1000 ? "${steps ~/ 1000}K" : "$steps";
+
+  return StepsBadgeColumn(
+    steps: displaySteps,
+    title: b['title'] as String,
+    unlocked: b['unlocked'] as bool,
+  );
+}).toList(),
+
               ),
             ),
           ],
