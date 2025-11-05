@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:lifestyle_companion/ollama_service.dart';
+import 'package:lifestyle_companion/groq_service.dart';
 import 'package:lottie/lottie.dart';
 
 
@@ -54,7 +54,7 @@ User walked $totalSteps steps. Provide professional celebratory feedback in 3-4 
 
 
 
-      final reply = await OllamaService.askModel(
+      final reply = await GroqService.askGroq(
         ques,
       );
       setState(() => _response = reply);
