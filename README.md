@@ -1,4 +1,4 @@
-# 🌙 Lifestyle Companion
+# HealthPilot AI
 
 A sleek **mobile wellness app** that unifies your daily health and lifestyle metrics — steps, sleep, habits, hydration, calories, and achievements — into one beautiful dark-themed dashboard.
 
